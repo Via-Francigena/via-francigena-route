@@ -1,0 +1,7 @@
+const dataUrl='data/stages.json';
+const fmt=(n,s=' km')=>n===null||n===undefined?'—':Number(n).toFixed(1)+s;
+function popup(s){return `<b>${s.title}</b><br>${s.date}<br><a href="stage.html?id=${s.id}">Open details</a>`}
+async function start(){const r=await fetch(dataUrl);const stages=await r.json();const walks=stages.filter(s=>!s.rest);document.querySelector('#stage-count').textContent=walks.length;document.querySelector('#rest-count').textContent=stages.filter(s=>s.rest).length;
+const body=document.querySelector('#stages');body.innerHTML=stages.map(s=>`<tr onclick="location.href='stage.html?id=${s.id}'"><td>${s.date}</td><td><b>${s.title}</b><br><small>${s.start} → ${s.end}</small></td><td>${fmt(s.distance)}</td><td>${s.difficulty===null?'—':s.difficulty}</td><td><span class="pill ${s.rest?'rest':''}">${s.rest?'Rest day':'Stage'}</span></td></tr>`).join('');
+const map=L.map('map').setView([45.7,8.5],6);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);const points=[];stages.forEach((s,i)=>{if(s.lat==null)return;points.push([s.lat,s.lon]);const marker=L.circleMarker([s.lat,s.lon],{radius:s.rest?9:(i===0||s.id==='50'?12:6),color:s.rest?'#c79227':i===0?'#26735b':s.id==='50'?'#c45b3c':'#2d6cdf',fillOpacity:.85,weight:2}).addTo(map);marker.bindPopup(popup(s))});if(points.length)map.fitBounds(points,{padding:[25,25]})}
+start().catch(e=>console.error(e));

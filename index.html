@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Via Francigena | Aigle to Rome</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header><div class="wrap"><div><small> PILGRIM ROUTE</small><h1>Via Francigena</h1></div><nav><a href="index.html">Overview</a><a href="join.html">How to join</a></nav></div></header>
+<main><section class="hero"><div class="wrap"><small>AIGLE TO ROME</small><h2>Interactive route overview</h2><p>Explore the daily stages and rest days of the 2027 journey.</p><div class="stats"><div><b id="stage-count">—</b><span>walking stages</span></div><div><b id="rest-count">—</b><span>rest days</span></div><div><b>2027</b><span>journey year</span></div></div></div></section>
+<section class="wrap section"><h2>Route map</h2><div id="map"></div></section>
+<section class="wrap section"><h2>Stage plan</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Stage</th><th>Distance</th><th>Difficulty</th><th>Type</th></tr></thead><tbody id="stages"></tbody></table></div></section></main>
+<footer><div class="wrap"><span>Via Francigena route planner</span><a href="join.html">How to join</a></div></footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="app.js"></script>
+</body></html>

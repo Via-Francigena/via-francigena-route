@@ -1,1 +1,85 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stage | Via Francigena</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></head><body><header><div class="wrap"><div><small>PILGRIM ROUTE</small><h1>Via Francigena</h1></div><nav><a href="index.html">Overview</a><a href="join.html">How to join</a></nav></div></header><main class="wrap narrow"><section class="card" id="detail"></section><a href="index.html">← Back to overview</a></main><footer><div class="wrap">Via Francigena route planner</div></footer><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>fetch('data/stages.json').then(r=>r.json()).then(a=>{let s=a.find(x=>x.id===new URLSearchParams(location.search).get('id'))||a[0];document.title=s.title+' | Via Francigena';document.querySelector('#detail').innerHTML=`<small>${s.rest?'REST DAY':'STAGE'}</small><h2>${s.title}</h2><p><b>${s.date}</b> · ${s.start} → ${s.end}</p><div class="stats"><div><b>${s.distance==null?'—':s.distance+' km'}</b><span>distance</span></div><div><b>${s.difficulty==null?'—':s.difficulty}</b><span>difficulty</span></div><div><b>${s.ascent==null?'—':s.ascent+' m'}</b><span>ascent</span></div></div><div id="map" style="margin-top:24px"></div>`;if(s.lat!=null){let m=L.map('map').setView([s.lat,s.lon],11);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(m);L.marker([s.lat,s.lon]).addTo(m).bindPopup(s.start).openPopup()}else document.querySelector('#map').innerHTML='<p>Map coordinates for this stage will be added as the route data is completed.</p>'})</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Stage | Via Francigena</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<header><div class="wrap"><div><small>PILGRIM ROUTE</small><h1>Via Francigena</h1></div><nav><a href="index.html">Overview</a><a href="join.html">How to join</a></nav></div></header>
+<main class="wrap narrow">
+  <section class="card" id="detail"></section>
+  <section class="card" id="accommodation">
+    <small>STAGE END TOWN</small>
+    <h2>Accommodation suggestions</h2>
+    <p class="placeholder">Accommodation suggestions for the stage end town will be added here.</p>
+  </section>
+  <section class="card" id="travel">
+    <small>JOINING THE ROUTE</small>
+    <h2>Travel information</h2>
+    <p class="placeholder">Travel information for people joining at this stage will be added here.</p>
+  </section>
+  <a href="index.html">← Back to overview</a>
+</main>
+<footer><div class="wrap">Via Francigena route planner</div></footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+fetch('data/stages.json').then(response => response.json()).then(stages => {
+  const id = new URLSearchParams(location.search).get('id');
+  const index = stages.findIndex(stage => stage.id === id);
+  const stage = stages[index] || stages[0];
+  const nextLocatedStage = stages.slice(index + 1).find(entry => entry.lat != null && entry.lon != null);
+  const start = stage.lat != null && stage.lon != null ? [stage.lat, stage.lon] : null;
+  // The data currently stores each stage's start point. The next located stage
+  // supplies this stage's endpoint until explicit end coordinates are added.
+  const end = stage.endLat != null && stage.endLon != null
+    ? [stage.endLat, stage.endLon]
+    : nextLocatedStage ? [nextLocatedStage.lat, nextLocatedStage.lon] : null;
+
+  document.title = stage.title + ' | Via Francigena';
+  document.querySelector('#detail').innerHTML = `
+    <small>${stage.rest ? 'REST DAY' : 'STAGE'}</small>
+    <h2>${stage.title}</h2>
+    <p><b>${stage.date}</b> · ${stage.start} → ${stage.end}</p>
+    <div class="stats">
+      <div><b>${stage.distance == null ? '—' : stage.distance + ' km'}</b><span>distance</span></div>
+      <div><b>${stage.difficulty == null ? '—' : stage.difficulty}</b><span>difficulty</span></div>
+      <div><b>${stage.ascent == null ? '—' : stage.ascent + ' m'}</b><span>ascent</span></div>
+    </div>
+    <div id="map" style="margin-top:24px"></div>
+  `;
+  document.querySelector('#accommodation .placeholder').textContent =
+    `Accommodation suggestions in ${stage.end || 'the stage end town'} will be added here.`;
+  document.querySelector('#travel .placeholder').textContent =
+    `Travel information for joining in ${stage.start || 'this location'} will be added here.`;
+
+  const mapElement = document.querySelector('#map');
+  if (!start && !end) {
+    mapElement.innerHTML = '<p class="placeholder">Map coordinates for this stage will be added as the route data is completed.</p>';
+    return;
+  }
+
+  const points = [start, end].filter(Boolean);
+  const map = L.map('map').setView(points[0], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  if (start) {
+    L.marker(start).addTo(map).bindPopup('<b>Start</b><br>' + stage.start).openPopup();
+  }
+  if (end) {
+    L.marker(end).addTo(map).bindPopup('<b>Finish</b><br>' + stage.end);
+  }
+  if (start && end) {
+    L.polyline([start, end], {color: '#2d6cdf', weight: 4, opacity: 0.9}).addTo(map);
+    map.fitBounds(L.latLngBounds([start, end]).pad(0.25));
+  } else {
+    map.setView(points[0], 11);
+  }
+}).catch(error => console.error('Unable to load stage data:', error));
+</script>
+</body>
+</html>

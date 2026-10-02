@@ -43,15 +43,9 @@ stageSheetStyle.textContent = `
 `;
 document.head.appendChild(stageSheetStyle);
 
-const SHEET_CONFIG = {
-  spreadsheetId: '2PACX-1vT1uLT1fDiUSkvvSRP6XqeevHDxEpTXCPz2_Q3f1uSIbQd_L4qscUNiwSV_E7QOaUW2Z-Up-VqPKYZt',
-  sheetRange: 'Published Sheet - links to website!A:T',
-  apiKey: 'AIzaSyDyfF1qvEyewv8_znxVpV0fJjw5sdjV06Q'
-};
-
-const sheetUrl = SHEET_CONFIG.apiKey
-  ? `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_CONFIG.spreadsheetId}/values/${encodeURIComponent(SHEET_CONFIG.sheetRange)}?key=${SHEET_CONFIG.apiKey}`
-  : null;
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 const stageImageFiles = {
   'A': '01Aigle StMaurice map.png',
@@ -78,90 +72,24 @@ const stageImageFiles = {
   '41': '41 SanQuirico Radicofani Map.png'
 };
 
-function buildSheetMap(values) {
-  if (!values || !values.length) return {};
-  const headers = values[0].map(h => String(h).trim());
-  const rows = values.slice(1);
-  const map = {};
-
-  rows.forEach(row => {
-    const item = {};
-    headers.forEach((header, index) => {
-      item[header] = (row[index] || '').trim();
-    });
-
-    const id = String(item.stage_id || '').trim();
-    if (id) map[id] = item;
-  });
-
-  return map;
+function formatAccommodation(stage) {
+  const items = (stage.accommodation || []).filter(Boolean);
+  if (!items.length) return null;
+  return `<ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
 }
 
-async function loadSheetData() {
-  if (!sheetUrl) {
-    console.warn('Google Sheets API key is not configured yet.');
-    return {};
-  }
-
-  try {
-    const response = await fetch(sheetUrl, { cache: 'no-store' });
-    if (!response.ok) throw new Error('Failed to fetch sheet data');
-    const json = await response.json();
-    return buildSheetMap(json.values || []);
-  } catch (error) {
-    console.error('Unable to load Google Sheet data:', error);
-    return {};
-  }
+function formatTransport(stage) {
+  return (stage.transport || '').trim() || null;
 }
 
-function formatAccommodation(sheetRow) {
-  const items = [];
-  for (let i = 1; i <= 4; i++) {
-    const value = (sheetRow[`accommodation_${i}`] || '').trim();
-    if (value) items.push(value);
-  }
-  if (!items.length) return 'Accommodation suggestions for the stage end town will be added here.';
-  return `<ul>${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+function formatNotes(stage) {
+  return (stage.notes || '').trim();
 }
 
-function formatTransport(sheetRow) {
-  const value = (sheetRow.transport || '').trim();
-  if (!value) return 'Travel information for people joining at this stage will be added here.';
-  return value;
-}
-
-function formatNotes(sheetRow) {
-  return (sheetRow.notes || '').trim();
-}
-
-function updateStageFromSheet(stage, sheetRow) {
-  if (!sheetRow) return;
-
-  if (sheetRow.distance_km) stage.distance = Number(sheetRow.distance_km);
-  if (sheetRow.ascent_m) stage.ascent = Number(sheetRow.ascent_m);
-  if (sheetRow.descent_m) stage.descent = Number(sheetRow.descent_m);
-  if (sheetRow.start_lat && sheetRow.start_lon) {
-    stage.lat = Number(sheetRow.start_lat);
-    stage.lon = Number(sheetRow.start_lon);
-  }
-  if (sheetRow.end_lat && sheetRow.end_lon) {
-    stage.endLat = Number(sheetRow.end_lat);
-    stage.endLon = Number(sheetRow.end_lon);
-  }
-}
-
-Promise.all([
-  fetch('data/stages.json').then(r => r.json()),
-  loadSheetData()
-]).then(([stages, sheetMap]) => {
+fetch('data/stages.json').then(r => r.json()).then(stages => {
   const id = new URLSearchParams(location.search).get('id');
   const index = stages.findIndex(stage => String(stage.id) === String(id));
   const stage = stages[index] || stages[0];
-  const sheetRow = sheetMap[String(stage.id)] || {};
-
-  if (sheetRow && Object.keys(sheetRow).length) {
-    updateStageFromSheet(stage, sheetRow);
-  }
 
   const nextLocatedStage = stages.slice(index + 1).find(entry => entry.lat != null && entry.lon != null);
   const start = stage.lat != null && stage.lon != null ? [stage.lat, stage.lon] : null;
@@ -184,14 +112,24 @@ Promise.all([
   `;
 
   const accommodationContent = document.querySelector('#accommodation-content');
-  accommodationContent.innerHTML = formatAccommodation(sheetRow);
-  accommodationContent.classList.remove('placeholder');
+  const accommodationHtml = formatAccommodation(stage);
+  if (accommodationHtml) {
+    accommodationContent.innerHTML = accommodationHtml;
+    accommodationContent.classList.remove('placeholder');
+  } else {
+    accommodationContent.textContent = 'Accommodation suggestions for the stage end town will be added here.';
+  }
 
   const travelContent = document.querySelector('#travel-content');
-  travelContent.textContent = formatTransport(sheetRow);
-  travelContent.classList.remove('placeholder');
+  const travelText = formatTransport(stage);
+  if (travelText) {
+    travelContent.textContent = travelText;
+    travelContent.classList.remove('placeholder');
+  } else {
+    travelContent.textContent = 'Travel information for people joining at this stage will be added here.';
+  }
 
-  const notesText = formatNotes(sheetRow);
+  const notesText = formatNotes(stage);
   if (notesText) {
     document.querySelector('#notes').style.display = 'block';
     document.querySelector('#notes-content').textContent = notesText;

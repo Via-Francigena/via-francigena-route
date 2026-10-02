@@ -46,10 +46,10 @@ document.head.appendChild(stageSheetStyle);
 const SHEET_CONFIG = {
   spreadsheetId: '2PACX-1vT1uLT1fDiUSkvvSRP6XqeevHDxEpTXCPz2_Q3f1uSIbQd_L4qscUNiwSV_E7QOaUW2Z-Up-VqPKYZt',
   sheetRange: 'A:T',
-  apiKey: 'PASTE_YOUR_GOOGLE_SHEETS_API_KEY_HERE'
+  apiKey: 'AIzaSyDyfF1qvEyewv8_znxVpV0fJjw5sdjV06Q'
 };
 
-const sheetUrl = SHEET_CONFIG.apiKey && SHEET_CONFIG.apiKey !== 'PASTE_YOUR_GOOGLE_SHEETS_API_KEY_HERE'
+const sheetUrl = SHEET_CONFIG.apiKey && SHEET_CONFIG.apiKey !== 'AIzaSyDyfF1qvEyewv8_znxVpV0fJjw5sdjV06Q'
   ? `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_CONFIG.spreadsheetId}/values/${SHEET_CONFIG.sheetRange}?key=${SHEET_CONFIG.apiKey}`
   : null;
 

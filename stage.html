@@ -110,7 +110,7 @@ fetch('data/stages.json').then(response => response.json()).then(stages => {
     figure.className = 'map-image-box';
     figure.innerHTML = `
       <figcaption>Detailed route map</figcaption>
-      <img src="${encodeURIComponent(fileName)}" alt="Detailed route map for ${stage.title}" />
+      <img src="${fileName}" alt="Detailed route map for ${stage.title}" />
     `;
     detail.appendChild(figure);
   }

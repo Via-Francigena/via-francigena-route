@@ -26,20 +26,43 @@
 <footer><div class="wrap">Via Francigena route planner</div></footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+const stageImageFiles = {
+  '1': '01Aigle StMaurice map.png',
+  '2': '02 StMaurice Martigny Map.png',
+  '3': '03 martigny orsieres map.png',
+  '4': '04 orsieres bourg saint piere map.png',
+  '5': '05 Bourgsaintpierre col du saint bernard map.png',
+  '6': '06 ColDuStBernard to Echevennoz map.png',
+  '7': '07Echevennoz Aosta Map.png',
+  '8': '08Aosta Chatillon map.png',
+  '9': '09 Chatillon Verres map.png',
+  '10': '10 Verres PontStMart Map.png',
+  '11': '11 PontStMart Ivrea Map.png',
+  '12': '12 Ivrea Viverone map.png',
+  '13': '13 Viverone Santhia Map.png',
+  '14': '14 Santhia Vercelli Map.png',
+  '15': '15 Vercelli Robbio Map.png',
+  '16': '16 Robbio Mortara Map.png',
+  '17': '17 Mortara Garlasco Map.png',
+  '18': '18 Garlasco Pavia Mapq.png',
+  '39': '39 Siena Pontedearbia map.png',
+  '40': '40 PonteDA SanQuirico Ele.png',
+  '41': '41 SanQuirico Radicofani Map.png'
+};
+
 fetch('data/stages.json').then(response => response.json()).then(stages => {
   const id = new URLSearchParams(location.search).get('id');
   const index = stages.findIndex(stage => stage.id === id);
   const stage = stages[index] || stages[0];
   const nextLocatedStage = stages.slice(index + 1).find(entry => entry.lat != null && entry.lon != null);
   const start = stage.lat != null && stage.lon != null ? [stage.lat, stage.lon] : null;
-  // The data currently stores each stage's start point. The next located stage
-  // supplies this stage's endpoint until explicit end coordinates are added.
   const end = stage.endLat != null && stage.endLon != null
     ? [stage.endLat, stage.endLon]
     : nextLocatedStage ? [nextLocatedStage.lat, nextLocatedStage.lon] : null;
 
   document.title = stage.title + ' | Via Francigena';
-  document.querySelector('#detail').innerHTML = `
+  const detail = document.querySelector('#detail');
+  detail.innerHTML = `
     <small>${stage.rest ? 'REST DAY' : 'STAGE'}</small>
     <h2>${stage.title}</h2>
     <p><b>${stage.date}</b> · ${stage.start} → ${stage.end}</p>
@@ -50,6 +73,7 @@ fetch('data/stages.json').then(response => response.json()).then(stages => {
     </div>
     <div id="map" style="margin-top:24px"></div>
   `;
+
   document.querySelector('#accommodation .placeholder').textContent =
     `Accommodation suggestions in ${stage.end || 'the stage end town'} will be added here.`;
   document.querySelector('#travel .placeholder').textContent =
@@ -78,6 +102,17 @@ fetch('data/stages.json').then(response => response.json()).then(stages => {
     map.fitBounds(L.latLngBounds([start, end]).pad(0.25));
   } else {
     map.setView(points[0], 11);
+  }
+
+  const fileName = stageImageFiles[String(stage.id)];
+  if (fileName) {
+    const figure = document.createElement('figure');
+    figure.className = 'map-image-box';
+    figure.innerHTML = `
+      <figcaption>Detailed route map</figcaption>
+      <img src="${encodeURIComponent(fileName)}" alt="Detailed route map for ${stage.title}" />
+    `;
+    detail.appendChild(figure);
   }
 }).catch(error => console.error('Unable to load stage data:', error));
 </script>

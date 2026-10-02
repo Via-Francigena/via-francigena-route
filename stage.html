@@ -45,12 +45,12 @@ document.head.appendChild(stageSheetStyle);
 
 const SHEET_CONFIG = {
   spreadsheetId: '2PACX-1vT1uLT1fDiUSkvvSRP6XqeevHDxEpTXCPz2_Q3f1uSIbQd_L4qscUNiwSV_E7QOaUW2Z-Up-VqPKYZt',
-  sheetRange: 'A:T',
+  sheetRange: 'Published Sheet - links to website!A:T',
   apiKey: 'AIzaSyDyfF1qvEyewv8_znxVpV0fJjw5sdjV06Q'
 };
 
-const sheetUrl = SHEET_CONFIG.apiKey && SHEET_CONFIG.apiKey !== 'AIzaSyDyfF1qvEyewv8_znxVpV0fJjw5sdjV06Q'
-  ? `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_CONFIG.spreadsheetId}/values/${SHEET_CONFIG.sheetRange}?key=${SHEET_CONFIG.apiKey}`
+const sheetUrl = SHEET_CONFIG.apiKey
+  ? `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_CONFIG.spreadsheetId}/values/${encodeURIComponent(SHEET_CONFIG.sheetRange)}?key=${SHEET_CONFIG.apiKey}`
   : null;
 
 const stageImageFiles = {
@@ -195,13 +195,6 @@ Promise.all([
   if (notesText) {
     document.querySelector('#notes').style.display = 'block';
     document.querySelector('#notes-content').textContent = notesText;
-  }
-
-  if (!sheetUrl || SHEET_CONFIG.apiKey === 'PASTE_YOUR_GOOGLE_SHEETS_API_KEY_HERE') {
-    const warning = document.createElement('div');
-    warning.className = 'sheet-warning';
-    warning.textContent = 'Google Sheets API key is not configured yet. Update SHEET_CONFIG.apiKey in stage.html to enable live data loading.';
-    detail.appendChild(warning);
   }
 
   const mapElement = document.querySelector('#map');

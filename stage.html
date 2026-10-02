@@ -14,18 +14,24 @@
   <section class="card" id="accommodation">
     <small>STAGE END TOWN</small>
     <h2>Accommodation suggestions</h2>
-    <p class="placeholder">Accommodation suggestions for the stage end town will be added here.</p>
+    <div id="accommodation-content" class="details placeholder">Loading accommodation options...</div>
   </section>
   <section class="card" id="travel">
     <small>JOINING THE ROUTE</small>
     <h2>Travel information</h2>
-    <p class="placeholder">Travel information for people joining at this stage will be added here.</p>
+    <div id="travel-content" class="details placeholder">Loading travel information...</div>
+  </section>
+  <section class="card" id="notes" style="display:none;">
+    <small>ADDITIONAL INFO</small>
+    <h2>Notes</h2>
+    <div id="notes-content" class="details"></div>
   </section>
   <a href="index.html">← Back to overview</a>
 </main>
 <footer><div class="wrap">Via Francigena route planner</div></footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1uLT1fDiUSkvvSRP6XqeevHDxEpTXCPz2_Q3f1uSIbQd_L4qscUNiwSV_E7QOaUW2Z-Up-VqPKYZt/pub?gid=1880407781&single=true&output=csv';
 const stageImageFiles = {
   '1': '01Aigle StMaurice map.png',
   '2': '02 StMaurice Martigny Map.png',
@@ -50,10 +56,113 @@ const stageImageFiles = {
   '41': '41 SanQuirico Radicofani Map.png'
 };
 
-fetch('data/stages.json').then(response => response.json()).then(stages => {
+function parseCSV(csvText) {
+  const lines = csvText.trim().split(/\r?\n/);
+  const headers = lines[0].split('\t').map(h => h.trim());
+  const data = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const cells = lines[i].split('\t');
+    const row = {};
+    headers.forEach((header, index) => {
+      row[header] = (cells[index] || '').trim();
+    });
+    if (row.stage_id) {
+      data.push(row);
+    }
+  }
+
+  return data;
+}
+
+function buildSheetMap(csvData) {
+  const map = {};
+  csvData.forEach(row => {
+    const id = String(row.stage_id).trim();
+    if (id) {
+      map[id] = row;
+    }
+  });
+  return map;
+}
+
+async function loadSheetData() {
+  try {
+    const response = await fetch(sheetUrl);
+    if (!response.ok) throw new Error('Failed to fetch sheet');
+    const text = await response.text();
+    const data = parseCSV(text);
+    return buildSheetMap(data);
+  } catch (error) {
+    console.error('Unable to load stage sheet:', error);
+    return {};
+  }
+}
+
+function formatAccommodation(sheetRow) {
+  const items = [];
+  for (let i = 1; i <= 4; i++) {
+    const key = `accommodation_${i}`;
+    const value = sheetRow[key];
+    if (value && value.length > 0) {
+      items.push(value);
+    }
+  }
+
+  if (items.length === 0) {
+    return 'Accommodation suggestions for the stage end town will be added here.';
+  }
+
+  return items.map(item => `<li>${item}</li>`).join('');
+}
+
+function formatTransport(sheetRow) {
+  return sheetRow.transport || 'Travel information for people joining at this stage will be added here.';
+}
+
+function formatNotes(sheetRow) {
+  return sheetRow.notes || '';
+}
+
+function updateStageFromSheet(stage, sheetRow) {
+  if (!sheetRow) return;
+
+  // Update stats if available in the sheet
+  if (sheetRow.distance_km) {
+    stage.distance = parseFloat(sheetRow.distance_km);
+  }
+  if (sheetRow.ascent_m) {
+    stage.ascent = parseInt(sheetRow.ascent_m);
+  }
+  if (sheetRow.descent_m) {
+    stage.descent = parseInt(sheetRow.descent_m);
+  }
+
+  // Update coordinates if available
+  if (sheetRow.start_lat && sheetRow.start_lon) {
+    stage.lat = parseFloat(sheetRow.start_lat);
+    stage.lon = parseFloat(sheetRow.start_lon);
+  }
+  if (sheetRow.end_lat && sheetRow.end_lon) {
+    stage.endLat = parseFloat(sheetRow.end_lat);
+    stage.endLon = parseFloat(sheetRow.end_lon);
+  }
+}
+
+Promise.all([
+  fetch('data/stages.json').then(r => r.json()),
+  loadSheetData()
+]).then(([stages, sheetMap]) => {
   const id = new URLSearchParams(location.search).get('id');
-  const index = stages.findIndex(stage => stage.id === id);
+  const index = stages.findIndex(s => String(s.id) === String(id));
   const stage = stages[index] || stages[0];
+  const sheetRow = sheetMap[String(stage.id)];
+
+  // Update stage data from sheet if available
+  if (sheetRow) {
+    updateStageFromSheet(stage, sheetRow);
+  }
+
   const nextLocatedStage = stages.slice(index + 1).find(entry => entry.lat != null && entry.lon != null);
   const start = stage.lat != null && stage.lon != null ? [stage.lat, stage.lon] : null;
   const end = stage.endLat != null && stage.endLon != null
@@ -74,36 +183,61 @@ fetch('data/stages.json').then(response => response.json()).then(stages => {
     <div id="map" style="margin-top:24px"></div>
   `;
 
-  document.querySelector('#accommodation .placeholder').textContent =
-    `Accommodation suggestions in ${stage.end || 'the stage end town'} will be added here.`;
-  document.querySelector('#travel .placeholder').textContent =
-    `Travel information for joining in ${stage.start || 'this location'} will be added here.`;
+  // Populate accommodation
+  const accommodationContent = document.querySelector('#accommodation-content');
+  if (sheetRow && formatAccommodation(sheetRow)) {
+    const accomHTML = formatAccommodation(sheetRow);
+    accommodationContent.innerHTML = accomHTML.startsWith('<li>') 
+      ? `<ul>${accomHTML}</ul>` 
+      : accomHTML;
+    accommodationContent.classList.remove('placeholder');
+  } else {
+    accommodationContent.textContent = 'Accommodation suggestions for the stage end town will be added here.';
+  }
 
+  // Populate travel
+  const travelContent = document.querySelector('#travel-content');
+  const transportText = formatTransport(sheetRow || {});
+  if (transportText && transportText !== 'Travel information for people joining at this stage will be added here.') {
+    travelContent.textContent = transportText;
+    travelContent.classList.remove('placeholder');
+  } else {
+    travelContent.textContent = 'Travel information for people joining at this stage will be added here.';
+  }
+
+  // Populate notes if present
+  const notesText = formatNotes(sheetRow || {});
+  if (notesText) {
+    document.querySelector('#notes').style.display = 'block';
+    document.querySelector('#notes-content').textContent = notesText;
+  }
+
+  // Handle map
   const mapElement = document.querySelector('#map');
   if (!start && !end) {
     mapElement.innerHTML = '<p class="placeholder">Map coordinates for this stage will be added as the route data is completed.</p>';
-    return;
-  }
-
-  const points = [start, end].filter(Boolean);
-  const map = L.map('map').setView(points[0], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-
-  if (start) {
-    L.marker(start).addTo(map).bindPopup('<b>Start</b><br>' + stage.start).openPopup();
-  }
-  if (end) {
-    L.marker(end).addTo(map).bindPopup('<b>Finish</b><br>' + stage.end);
-  }
-  if (start && end) {
-    L.polyline([start, end], {color: '#2d6cdf', weight: 4, opacity: 0.9}).addTo(map);
-    map.fitBounds(L.latLngBounds([start, end]).pad(0.25));
   } else {
-    map.setView(points[0], 11);
+    const points = [start, end].filter(Boolean);
+    const map = L.map('map').setView(points[0], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    if (start) {
+      L.marker(start).addTo(map).bindPopup('<b>Start</b><br>' + stage.start).openPopup();
+    }
+    if (end) {
+      L.marker(end).addTo(map).bindPopup('<b>Finish</b><br>' + stage.end);
+    }
+    if (start && end) {
+      L.polyline([start, end], {color: '#2d6cdf', weight: 4, opacity: 0.9}).addTo(map);
+      map.fitBounds(L.latLngBounds([start, end]).pad(0.25));
+    } else {
+      map.setView(points[0], 11);
+    }
   }
 
+  // Add detailed route map image if available
   const fileName = stageImageFiles[String(stage.id)];
   if (fileName) {
     const figure = document.createElement('figure');
@@ -114,7 +248,7 @@ fetch('data/stages.json').then(response => response.json()).then(stages => {
     `;
     detail.appendChild(figure);
   }
-}).catch(error => console.error('Unable to load stage data:', error));
+}).catch(error => console.error('Error loading stage data:', error));
 </script>
 </body>
 </html>

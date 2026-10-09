@@ -75,11 +75,21 @@ const stageImageFiles = {
 function formatAccommodation(stage) {
   const items = (stage.accommodation || []).filter(Boolean);
   if (!items.length) return null;
-  return `<ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+  return `<ul>${items.map(item => {
+    if (typeof item === 'string') return `<li>${escapeHtml(item)}</li>`;
+    const fields = [
+      ['Accommodation', item.address],
+      ['Contact', item.contact],
+      ['Cost', item.cost],
+      ['Capacity', item.capacity]
+    ].filter(([, value]) => value);
+    return `<li>${fields.map(([label, value]) => `<strong>${label}:</strong> ${escapeHtml(value)}`).join('<br>')}</li>`;
+  }).join('')}</ul>`;
 }
 
 function formatTransport(stage) {
-  return (stage.transport || '').trim() || null;
+  const transport = (stage.transport || '').trim();
+  return transport && !/^nope[.!]?$/i.test(transport) ? transport : null;
 }
 
 function formatNotes(stage) {
@@ -105,8 +115,10 @@ fetch('data/stages.json').then(r => r.json()).then(stages => {
     <p><b>${stage.date}</b> · ${stage.start} → ${stage.end}</p>
     <div class="stats">
       <div><b>${stage.distance == null ? '—' : stage.distance + ' km'}</b><span>distance</span></div>
+      <div><b>${stage.distanceMiles == null ? '—' : stage.distanceMiles + ' mi'}</b><span>distance</span></div>
       <div><b>${stage.difficulty == null ? '—' : stage.difficulty}</b><span>difficulty</span></div>
       <div><b>${stage.ascent == null ? '—' : stage.ascent + ' m'}</b><span>ascent</span></div>
+      <div><b>${stage.descent == null ? '—' : stage.descent + ' m'}</b><span>descent</span></div>
     </div>
     <div id="map" style="margin-top:24px"></div>
   `;

@@ -99,14 +99,18 @@ fetch('data/stages.json').then(r => r.json()).then(stages => {
 
   document.title = stage.title + ' | Via Francigena';
   const detail = document.querySelector('#detail');
+  const distanceMiles = stage.distance == null
+    ? null
+    : (Number(stage.distance) / 1.609344).toFixed(1);
   detail.innerHTML = `
     <small>${stage.rest ? 'REST DAY' : 'STAGE'}</small>
-    <h2>${stage.title}</h2>
-    <p><b>${stage.date}</b> · ${stage.start} → ${stage.end}</p>
+    <h2>${escapeHtml(stage.title)}</h2>
+    <p><b>${escapeHtml(stage.date)}</b> · ${escapeHtml(stage.start)} → ${escapeHtml(stage.end)}</p>
     <div class="stats">
-      <div><b>${stage.distance == null ? '—' : stage.distance + ' km'}</b><span>distance</span></div>
-      <div><b>${stage.difficulty == null ? '—' : stage.difficulty}</b><span>difficulty</span></div>
-      <div><b>${stage.ascent == null ? '—' : stage.ascent + ' m'}</b><span>ascent</span></div>
+      <div><b>${stage.distance == null ? '—' : `${escapeHtml(stage.distance)} km / ${distanceMiles} mi`}</b><span>distance</span></div>
+      <div><b>${stage.difficulty == null ? '—' : escapeHtml(stage.difficulty)}</b><span>difficulty</span></div>
+      <div><b>${stage.ascent == null ? '—' : escapeHtml(stage.ascent) + ' m'}</b><span>ascent</span></div>
+      <div><b>${stage.descent == null ? '—' : escapeHtml(stage.descent) + ' m'}</b><span>descent</span></div>
     </div>
     <div id="map" style="margin-top:24px"></div>
   `;
@@ -146,10 +150,10 @@ fetch('data/stages.json').then(r => r.json()).then(stages => {
     }).addTo(map);
 
     if (start) {
-      L.marker(start).addTo(map).bindPopup('<b>Start</b><br>' + stage.start).openPopup();
+      L.marker(start).addTo(map).bindPopup('<b>Start</b><br>' + escapeHtml(stage.start)).openPopup();
     }
     if (end) {
-      L.marker(end).addTo(map).bindPopup('<b>Finish</b><br>' + stage.end);
+      L.marker(end).addTo(map).bindPopup('<b>Finish</b><br>' + escapeHtml(stage.end));
     }
     if (start && end) {
       L.polyline([start, end], {color: '#2d6cdf', weight: 4, opacity: 0.9}).addTo(map);
@@ -165,7 +169,7 @@ fetch('data/stages.json').then(r => r.json()).then(stages => {
     figure.className = 'map-image-box';
     figure.innerHTML = `
       <figcaption>Detailed route map</figcaption>
-      <img src="${fileName}" alt="Detailed route map for ${stage.title}" />
+      <img src="${fileName}" alt="Detailed route map for ${escapeHtml(stage.title)}" />
     `;
     detail.appendChild(figure);
   }

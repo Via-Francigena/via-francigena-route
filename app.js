@@ -1,17 +1,12 @@
 const dataUrl='data/stages.json';
 const fmt=(n,s=' km')=>n===null||n===undefined?'—':Number(n).toFixed(1)+s;
-const formatDate=iso=>{const [y,m,d]=(iso||'').split('-');return y&&m&&d?`${d}${m}${y}`:'—'};
 function popup(s){return `<b>${s.title}</b><br>${s.date}<br><a href="stage.html?id=${s.id}">Open details</a>`}
 async function start(){
   const r=await fetch(dataUrl);
   const stages=await r.json();
   const walks=stages.filter(s=>!s.rest);
-  const totalKm=stages.reduce((sum,s)=>sum+(Number(s.distance)||0),0);
-  const totalMiles=stages.reduce((sum,s)=>sum+(Number(s.distanceMiles)||0),0);
   const setText=(id,text)=>{const el=document.querySelector(id);if(el)el.textContent=text};
   setText('#stage-count',walks.length);
-  setText('#total-distance',`${Math.round(totalKm).toLocaleString('en-GB')} km / ${Math.round(totalMiles).toLocaleString('en-GB')} mi`);
-  setText('#journey-dates',`${formatDate(stages[0]?.date)} – ${formatDate(stages[stages.length-1]?.date)}`);
   const body=document.querySelector('#stages');
   body.innerHTML=stages.map(s=>`<tr onclick="location.href='stage.html?id=${s.id}'"><td>${s.date}</td><td><b>${s.title}</b><br><small>${s.start} → ${s.end}</small></td><td>${fmt(s.distance)}</td><td>${s.difficulty??'—'}</td><td>${s.ascent??'—'}</td><td>${s.descent??'—'}</td><td>${s.rest?'Rest day':'Stage'}</td></tr>`).join('');
   const map=L.map('map').setView([45.7,8.5],6);

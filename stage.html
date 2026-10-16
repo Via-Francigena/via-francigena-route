@@ -11,6 +11,7 @@
 <header><div class="wrap"><div><small>PILGRIM ROUTE</small><h1>Via Francigena</h1></div><nav><a href="index.html">Home</a><a href="route.html">Route overview</a><a href="join.html">How to join</a></nav></div></header>
 <main class="wrap narrow">
   <section class="card" id="detail"></section>
+  <nav class="stage-nav" id="stage-nav" aria-label="Stage navigation"></nav>
   <section class="card" id="accommodation">
     <small>STAGE END TOWN</small>
     <h2>Accommodation suggestions</h2>
@@ -40,6 +41,11 @@ stageSheetStyle.textContent = `
   .map-image-box figcaption { margin-bottom: 12px; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #536069; }
   .map-image-box img { display: block; width: 100%; height: auto; border: 1px solid #d8d0c3; border-radius: 12px; }
   .sheet-warning { margin-top: 14px; padding: 12px 14px; border-left: 4px solid #c77f00; background: #fff5dc; color: #5a3d00; border-radius: 8px; }
+  .stage-nav { display: flex; justify-content: space-between; gap: 12px; margin: 18px 0; }
+  .stage-nav-btn { flex: 1; display: inline-block; text-align: center; padding: 12px 18px; border-radius: 999px; border: 2px solid #203e49; background: #203e49; color: #fff; font-weight: 700; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; }
+  .stage-nav-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(32,62,73,.18); }
+  .stage-nav-btn.disabled { background: #e4e1da; border-color: #d0ccc2; color: #9a9a9a; cursor: not-allowed; pointer-events: none; box-shadow: none; transform: none; }
+  @media (max-width: 500px) { .stage-nav { flex-direction: column; } }
 `;
 document.head.appendChild(stageSheetStyle);
 
@@ -96,10 +102,23 @@ function formatNotes(stage) {
   return (stage.notes || '').trim();
 }
 
+function renderStageNav(stages, index) {
+  const nav = document.querySelector('#stage-nav');
+  const prev = index > 0 ? stages[index - 1] : null;
+  const next = index < stages.length - 1 ? stages[index + 1] : null;
+  const button = (stage, label, rel) => stage
+    ? `<a class="stage-nav-btn" rel="${rel}" href="stage.html?id=${encodeURIComponent(stage.id)}" title="${escapeHtml(stage.title)}">${label}</a>`
+    : `<span class="stage-nav-btn disabled" aria-disabled="true">${label}</span>`;
+  nav.innerHTML = button(prev, '← Previous stage', 'prev') + button(next, 'Next stage →', 'next');
+}
+
 fetch('data/stages.json').then(r => r.json()).then(stages => {
   const id = new URLSearchParams(location.search).get('id');
-  const index = stages.findIndex(stage => String(stage.id) === String(id));
-  const stage = stages[index] || stages[0];
+  const foundIndex = stages.findIndex(stage => String(stage.id) === String(id));
+  const index = foundIndex >= 0 ? foundIndex : 0;
+  const stage = stages[index];
+
+  renderStageNav(stages, index);
 
   const nextLocatedStage = stages.slice(index + 1).find(entry => entry.lat != null && entry.lon != null);
   const start = stage.lat != null && stage.lon != null ? [stage.lat, stage.lon] : null;

@@ -1,0 +1,20 @@
+.home-hero{position:relative;color:#fff;text-align:center;padding:96px 0 88px;background:linear-gradient(160deg,#203e49 0%,#2c5766 55%,#1a323b 100%);overflow:hidden}
+.home-hero:after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:linear-gradient(90deg,#c9a24b,#e6c878,#c9a24b)}
+.home-hero .eyebrow{display:inline-block;font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:#e6c878;margin-bottom:18px}
+.home-hero h2{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:clamp(2.6rem,7vw,4.4rem);margin:0 0 14px;letter-spacing:.02em}
+.home-hero .divider{width:72px;height:2px;background:#e6c878;margin:0 auto 22px}
+.home-hero .subtitle{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:clamp(1.1rem,2.6vw,1.5rem);max-width:760px;margin:0 auto;color:#eef2f3;line-height:1.45}
+.home-content{padding:56px 0 24px}
+.home-card{max-width:820px;margin:0 auto;background:#fffdf9;border:1px solid #e3dccd;border-radius:20px;padding:clamp(24px,5vw,52px);box-shadow:0 10px 30px rgba(32,62,73,.08)}
+.home-card p{font-size:1.1rem;line-height:1.8;color:#2b3741;margin:0 0 1.3em}
+.home-card p:first-child:first-letter{font-family:Georgia,serif;font-size:3.4rem;float:left;line-height:.9;padding:6px 10px 0 0;color:#203e49}
+.home-card strong{color:#203e49}
+.home-donate{margin:8px 0 0;padding:20px 24px;border-left:4px solid #c9a24b;background:#f7f1e1;border-radius:10px}
+.home-donate p{margin:0;font-size:1.05rem}
+.home-actions{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:40px 0 8px}
+.home-btn{display:inline-block;padding:14px 28px;border-radius:999px;font-weight:700;text-decoration:none;font-size:1rem;border:2px solid #203e49;transition:transform .15s ease,box-shadow .15s ease}
+.home-btn.primary{background:#203e49;color:#fff}
+.home-btn.secondary{background:transparent;color:#203e49}
+.home-btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(32,62,73,.18)}
+.home-sep{display:none}
+@media(max-width:600px){.home-hero{padding:64px 0 60px}.home-btn{width:100%;text-align:center}}

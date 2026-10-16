@@ -2,15 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Via Francigena | Aigle to Rome</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <title>Welcome | Pilgrimage to Rome 2027</title>
+  <meta name="description" content="The Ordinariate of Our Lady of Walsingham — Pilgrimage to Rome 2027, walking the Via Francigena from the Swiss Alps to Rome.">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="home.css">
 </head>
 <body>
-<header><div class="wrap"><div><small> PILGRIM ROUTE</small><h1>Via Francigena</h1></div><nav><a href="index.html">Overview</a><a href="join.html">How to join</a></nav></div></header>
-<main><section class="hero"><div class="wrap"><small>AIGLE TO ROME</small><h2>Interactive route overview</h2><p>Explore the daily stages and rest days of the 2027 journey.</p><div class="stats"><div><b id="stage-count">—</b><span>walking stages</span></div><div><b id="total-distance">1105 km / 686 mi</b><span>Total Distance</span></div><div><b id="journey-dates">From 29th May to 27th July 2027</b><span>Dates</span></div></div></div></section>
-<section class="wrap section"><h2>Route map</h2><div id="map"></div></section>
-<section class="wrap section"><h2>Stage plan</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Stage</th><th>Distance</th><th>Difficulty</th><th>Ascent</th><th>Descent</th><th>Type</th></tr></thead><tbody id="stages"></tbody></table></div></section></main>
+<header><div class="wrap"><div><small>PILGRIM ROUTE</small><h1>Via Francigena</h1></div><nav><a href="index.html">Home</a><a href="route.html">Route overview</a><a href="join.html">How to join</a></nav></div></header>
+<main>
+  <section class="home-hero">
+    <div class="wrap">
+      <span class="eyebrow">Pilgrimage to Rome 2027</span>
+      <h2>Welcome</h2>
+      <div class="divider"></div>
+      <p class="subtitle">The Ordinariate of Our Lady of Walsingham — Pilgrimage to Rome 2027</p>
+    </div>
+  </section>
+
+  <section class="wrap home-content">
+    <div class="home-card">
+      <p>Fr Nicholas Leviseur, accompanied by members and friends of the Ordinariate, will walk over 1,000 km from the Swiss Alps to Rome along the ancient Via Francigena — the route first documented in AD 990 by Sigeric, 28th Archbishop of Canterbury, on his return journey from receiving his pallium.</p>
+      <p>Pilgrims are warmly invited to join for as long or as short a distance as they can manage — whether a single day, a week, or the full journey to St Peter's. Come and be part of this once-in-a-lifetime journey.</p>
+      <div class="home-donate">
+        <p>All donations raised will support <strong>PLACEHOLDER TEXT</strong>. Whatever you can give — large or small — makes a real difference.</p>
+      </div>
+    </div>
+
+    <div class="home-actions">
+      <a class="home-btn primary" href="route.html">View the route and itinerary</a>
+      <a class="home-btn secondary" href="join.html">Join or contribute</a>
+    </div>
+  </section>
+</main>
 <footer><div class="wrap"><span>Via Francigena route planner</span><a href="join.html">How to join</a></div></footer>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="app.js?v=4"></script>
 </body></html>
